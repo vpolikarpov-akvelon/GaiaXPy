@@ -39,11 +39,3 @@ class TestInternalSampledParserCSV(unittest.TestCase):
         self.assertIsInstance(parser.parse(xml_file), pd.DataFrame)
     '''
 
-
-class TestIncorrectFormat(unittest.TestCase):
-
-    def test_parse_incorrect_format(self):
-        with self.assertRaises(DataMismatchError):
-            parser._parse_fits(csv_file)
-        with self.assertRaises(DataMismatchError):
-            parser._parse_xml(csv_file)

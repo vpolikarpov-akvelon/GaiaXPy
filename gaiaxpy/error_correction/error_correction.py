@@ -7,6 +7,7 @@ Module that implements the error correction over a multi-photometry.
 from functools import lru_cache
 from math import isnan, floor
 from os import path, listdir
+from os.path import exists
 
 import numpy as np
 import pandas as pd
@@ -31,13 +32,12 @@ def _get_correctable_systems():
 
 def _read_system_table(system):
     # Read system table
-    try:
-        correction_factors_path = path.join(correction_tables_path, f'DIDREQ-465-{system}-correction-factors.csv')
+    correction_factors_path = path.join(correction_tables_path, f'DIDREQ-465-{system}-correction-factors.csv')
+    if exists:
         correction_table = pd.read_csv(correction_factors_path, float_precision='round_trip')
         correction_table['bin_centre'] = (correction_table['min_Gmag_bin'] + correction_table['max_Gmag_bin']) / 2
-    except FileNotFoundError:
-        raise FileNotFoundError(f'No correction table found for system {system}.')
-    return correction_table
+        return correction_table
+    raise FileNotFoundError(f'Correction table not found for system {system}.')
 
 
 def _get_correction_array(mag_G_values, system):
@@ -49,8 +49,7 @@ def _get_correction_array(mag_G_values, system):
 
 def _get_correction_factors(mag, correction_table):
     # Min and max range values in the table
-    min_value = correction_table['min_Gmag_bin'].iloc[0]
-    max_value = correction_table['max_Gmag_bin'].iloc[-1]
+    min_value, max_value = correction_table['min_Gmag_bin'].iloc[0], correction_table['max_Gmag_bin'].iloc[-1]
     # Factor columns
     factor_columns = [column for column in correction_table.columns if 'factor_' in column]
     # See whether the mag is in the table
@@ -65,10 +64,7 @@ def _get_correction_factors(mag, correction_table):
     # If the column extracted is the last one, we have no way to extrapolate, so we keep the correction factors
     factors = range_row[factor_columns]
     bin_centre = range_row['bin_centre']
-    try:
-        next_range_row = correction_table[correction_table['min_Gmag_bin'] == range_row['max_Gmag_bin']].iloc[0]
-    except:
-        return factors
+    next_range_row = correction_table[correction_table['min_Gmag_bin'] == range_row['max_Gmag_bin']].iloc[0]
     # Now for the rest
     if mag <= bin_centre:
         return factors
@@ -80,7 +76,7 @@ def _get_correction_factors(mag, correction_table):
                               enumerate(factors)]
         return np.array(correction_factors)
     else:
-        raise ValueError('Check the variables being used. The program should never fall in this case.')
+        raise ValueError('Check the variables being used. The program should never fall into this case.')
 
 
 def _correct_system(system_df, correction_array):

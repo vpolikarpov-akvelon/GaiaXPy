@@ -3,6 +3,7 @@ from astroquery.gaia import GaiaClass
 from gaiaxpy.core.server import data_release, gaia_server
 from .archive_reader import ArchiveReader
 from .dataframe_reader import DataFrameReader
+from .utils import has_continuous_key
 
 not_supported_functions = ['apply_colour_equation', 'apply_error_correction', 'simulate_continuous', 'simulate_sampled']
 
@@ -14,7 +15,6 @@ def extremes_are_enclosing(first_row, column):
         return True
     else:
         return False
-
 
 class ListReader(ArchiveReader):
 
@@ -36,9 +36,10 @@ class ListReader(ArchiveReader):
         # ADQL query
         result = gaia.load_data(ids=sources, format='csv', data_release=_data_release, data_structure='raw',
                                 retrieval_type='XP_CONTINUOUS', avoid_datatype_check=True)
-        try:
+
+        if has_continuous_key(result):
             continuous_key = [key for key in result.keys() if 'continuous' in key.lower()][0]
             data = result[continuous_key][0].to_pandas()
-        except (KeyError, IndexError):
+            return DataFrameReader(data)._read_df()
+        else:
             raise ValueError('No continuous raw data found for the given sources.')
-        return DataFrameReader(data)._read_df()

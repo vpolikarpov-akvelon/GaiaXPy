@@ -3,6 +3,7 @@ from astroquery.gaia import GaiaClass
 from gaiaxpy.core.server import data_release, gaia_server
 from .archive_reader import ArchiveReader
 from .dataframe_reader import DataFrameReader
+from .utils import has_continuous_key
 
 not_supported_functions = ['apply_colour_equation', 'simulate_continuous', 'simulate_sampled']
 
@@ -26,10 +27,9 @@ class QueryReader(ArchiveReader):
         ids = job.get_results()
         result = gaia.load_data(ids=ids['source_id'], format='csv', data_release=_data_release,
                                 data_structure='raw', retrieval_type='XP_CONTINUOUS', avoid_datatype_check=True)
-        try:
+        if has_continuous_key(result):
             continuous_key = [key for key in result.keys() if 'continuous' in key.lower()][0]
             data = result[continuous_key][0].to_pandas()
-        # TODO: More granular error management required.
-        except KeyError:
-            raise ValueError('No continuous raw data found for the requested query.')
-        return DataFrameReader(data)._read_df()
+            return DataFrameReader(data)._read_df()
+        else:
+            raise ValueError('No continuous raw data found for the given sources.')

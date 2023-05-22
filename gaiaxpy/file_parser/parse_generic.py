@@ -103,10 +103,7 @@ class GenericParser(object):
         converters = {}
         if array_columns is not None:
             converters = dict([(column, lambda x: str_to_array(x)) for column in array_columns])
-        try:
-            df = pd.read_csv(csv_file, comment='#', float_precision='round_trip', converters=converters)
-        except UnicodeDecodeError:
-            raise DataMismatchError()
+        df = pd.read_csv(csv_file, comment='#', float_precision='high', converters=converters)
         if matrix_columns is not None:
             for size_column, values_column in matrix_columns:
                 df[values_column] = df.apply(lambda row: array_to_symmetric_matrix(str_to_array(row[values_column]),
@@ -123,10 +120,7 @@ class GenericParser(object):
         Returns:
             DataFrame: A pandas DataFrame representing the FITS file.
         """
-        try:
-            table = Table.read(fits_file, format='fits')
-        except OSError:
-            raise DataMismatchError()
+        table = Table.read(fits_file, format='fits')
         columns = table.columns.keys()
         fits_as_gen = ([table[column][index] for column in columns] for index, _ in enumerate(table))
         df = pd.DataFrame(fits_as_gen, columns=columns)
@@ -147,10 +141,7 @@ class GenericParser(object):
         Returns:
             DataFrame: A pandas DataFrame representing the XML file.
         """
-        try:
-            votable = parse_single_table(xml_file).to_table(use_names_over_ids=True)
-        except ValueError:
-            raise DataMismatchError()
+        votable = parse_single_table(xml_file).to_table(use_names_over_ids=True)
         if array_columns:
             columns = list(votable.columns)
             votable_as_list = ([votable[column][index].filled() if column in array_columns else votable[column][index]

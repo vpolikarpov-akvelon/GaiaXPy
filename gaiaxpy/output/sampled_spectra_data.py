@@ -78,10 +78,7 @@ class SampledSpectraData(OutputData):
             for spectrum in _spectra_dicts:
                 for field, _type in field_to_type.items():
                     if _type == 'string' and not field == 'xp':
-                        try:
-                            spectrum[field] = str(tuple(spectrum[field]))
-                        except KeyError:
-                            continue  # Key may not exist (e.g.: 'xp')
+                        spectrum[field] = str(tuple(spectrum[field]))
             # Validate that records match the schema
             validate_many(_spectra_dicts, schema)
             return parse_schema(schema), _spectra_dicts

@@ -86,11 +86,9 @@ def _build_ecsv_header(df, positions=None):
         header.append('# -')
         header.append(f'#   name: {column}')
         header.append(f'#   datatype: {header_dict[column]["datatype"]}')
-        try:
-            header.append(
-                f'#   subtype: {header_dict[column]["subtype"].replace("null", str(len(df[column].iloc[0])))}')
-        except KeyError:
-            pass
+        subtype = header_dict[column].get('subtype', None)
+        if subtype:
+            header.append(f'#   subtype: {subtype.replace("null", str(len(df[column].iloc[0])))}')
         header.append(f'#   description: {header_dict[column]["description"]}')
         if units_dict.get(column, None):
             header.append(f'#   unit: {units_dict[column]}')
