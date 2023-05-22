@@ -66,10 +66,8 @@ def str_to_array(str_array):
     if isinstance(str_array, str) and len(str_array) >= 2 and str_array[0] == '(' and str_array[1] == '(':
         return str_to_matrix(str_array)
     elif isinstance(str_array, str):
-        try:
-            return np.fromstring(str_array[1:-1], sep=',')
-        except:  # np.fromstring may not raise an error but only show a warning depending on the version
-            raise ValueError('Input cannot be converted to an array.')
+        # np.fromstring may not raise an error but only show a warning depending on the version
+        return np.fromstring(str_array[1:-1], sep=',')
     elif isinstance(str_array, float):
         return float('NaN')
     else:
