@@ -19,20 +19,12 @@ def get_file_path(config_file=None):
         return filters_path
     _config_parser = ConfigParser()
     _config_parser.read(config_file)
-    try:
-        file_path = _config_parser['filter']['filters_dir']
-    except KeyError:
-        return filters_path
-    return file_path
+    return _config_parser.get('filter', 'filters_dir', fallback=filters_path)
 
 
 def get_filter_version_from_config(_config_parser):
     # TODO: return built-in version if the version section is not found.
-    try:
-        version = _config_parser['filter']['version']
-    except KeyError:
-        version = None
-    return version
+    return _config_parser.get('filter', 'version', fallback=None)
 
 
 def replace_file_name(_config_file, label, key, bp_model, rp_model, system):

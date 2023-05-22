@@ -2,7 +2,7 @@ import sys
 import tempfile
 from configparser import ConfigParser
 from os import walk, urandom
-from os.path import isdir, join
+from os.path import exists, isdir, join
 from re import match
 
 from gaiaxpy.core.config import ADDITIONAL_SYSTEM_PREFIX
@@ -112,9 +112,11 @@ def load_config(config_file: str = None):
     """
     config_file = _CFG_FILE_PATH if not config_file else config_file
     config = ConfigParser()
-    with open(config_file) as f:
-        config.read_file(f)
-    return config
+    if exists(config_file):
+        with open(config_file) as f:
+            config.read_file(f)
+        return config
+    return None
 
 
 def get_additional_filters_path(config_file: str = None):
@@ -128,11 +130,10 @@ def get_additional_filters_path(config_file: str = None):
     Returns:
         str: The path to the directory containing the additional filters.
     """
-    try:
-        config = load_config(config_file)
-        return config['filter']['filters_dir']
-    except (IOError, KeyError):
-        return None
+    config = load_config(config_file)
+    if config:
+        return config.get('filter', 'filters_dir', fallback=None)
+    return None
 
 
 def contains_filter_key(config_file: str = None):
@@ -146,12 +147,10 @@ def contains_filter_key(config_file: str = None):
     Returns:
         bool: True if the configuration file contains the key for the additional filters' directory, False otherwise.
     """
-    config = load_config(config_file)
-    try:
-        k = bool(config['filter']['filters_dir'])
-    except (IOError, KeyError):
-        return False
-    return k
+    if exists(config_file):
+        config = load_config(config_file)
+        return bool(config.get('filter', 'filters_dir', fallback=None))
+    return False
 
 
 def get_additional_filters_names(config_file: str = None):

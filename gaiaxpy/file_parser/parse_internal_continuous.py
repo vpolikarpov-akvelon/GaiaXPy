@@ -14,7 +14,7 @@ from packaging import version
 
 from gaiaxpy.core.generic_functions import array_to_symmetric_matrix
 from gaiaxpy.file_parser.parse_generic import DataMismatchError
-from .cast import _cast
+from gaiaxpy.input_reader.cast import _cast
 from .parse_generic import GenericParser
 from .utils import _csv_to_avro_map, _get_from_dict
 
@@ -71,12 +71,14 @@ class InternalContinuousParser(GenericParser):
             DataFrame: A pandas DataFrame representing the XML file.
         """
         try:
-            votable = parse_single_table(xml_file)
+            votable = parse_single_table(xml_file).to_table(use_names_over_ids=True)
         except ValueError:
             raise DataMismatchError()
-        columns = [re.search('<FIELD ID="(.+?)"', str(field)).group(1) for field in votable.fields]
-        values_to_df = ((value for column, value in zip(columns, entry)) for index, entry in enumerate(votable.array))
-        df = pd.DataFrame(values_to_df, columns=columns)
+        #columns = [re.search('<FIELD ID="(.+?)"', str(field)).group(1) for field in votable.fields]
+        #values_to_df = ((value for column, value in zip(columns, entry)) for index, entry in enumerate(votable.array))
+        df = votable.to_pandas()
+        #pd.DataFrame(values_to_df, columns=columns)
+        #raise ValueError(df.iloc[0])
         if matrix_columns is not None:
             for size_column, values_column in matrix_columns:
                 try:

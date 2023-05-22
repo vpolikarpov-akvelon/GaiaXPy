@@ -27,10 +27,7 @@ def __get_dot_product(L_inv: np.ndarray) -> Optional[np.ndarray]:
         ndarray: The dot product of the transpose of L_inv with itself. None: If L_inv does not have the attribute `T`
             (transpose).
     """
-    try:
-        return dot(L_inv.T, L_inv)
-    except AttributeError:
-        return None
+    return dot(L_inv.T, L_inv) if hasattr(L_inv, "T") else None
 
 
 def __output_list_to_df(parsed_input_data: pd.DataFrame, bands_output: list, output_columns: list) -> pd.DataFrame:
@@ -105,27 +102,15 @@ def _get_inverse_square_root_covariance_matrix_aux(xp_errors: np.ndarray, xp_cor
         ndarray: The inverse square root of the covariance matrix. None: If the Cholesky decomposition of the
             correlation matrix fails.
     """
-    try:
-        L = cholesky(xp_correlation_matrix, lower=True)
-        # Invert lower triangular matrix.
-        L_inv = solve_triangular(L, identity(len(L)), lower=True)
-        # Matrix of inverse errors.
-        E_inv = diag(1.0 / xp_errors)
-        return dot(L_inv, E_inv)
-    except ValueError:
+    if len(xp_correlation_matrix.shape) != 2 or (xp_correlation_matrix.shape[0] != xp_correlation_matrix.shape[1]):
         return None
+    lower_triangle = cholesky(xp_correlation_matrix, lower=True)
+    # Invert lower triangular matrix.
+    lower_inverse = solve_triangular(lower_triangle, identity(len(lower_triangle)), lower=True)
+    # Matrix of inverse errors.
+    errors_inverse = diag(1.0 / xp_errors)
+    return dot(lower_inverse, errors_inverse)
 
-
-# The following method is not recommended. The get_inverse_square_root_covariance_matrix which inverts the correlation
-# matrix instead is to be preferred because the correlations only range between -1 and +1 whereas the values in the
-# covariance matrix can vary from -inf to +inf.
-# def __get_inv_cholesky_decomp(xp_cov):
-#    try:
-#        L = cholesky(xp_cov, lower=True)
-#        # Invert lower triangular matrix.
-#        return solve_triangular(L, identity(len(L)), lower=True)
-#    except ValueError:
-#        return None
 
 def get_inverse_covariance_matrix(input_object: Union[list, Path, str], band: str = None):
     """

@@ -34,10 +34,8 @@ def cast_output(output):
     cast_dict = {'source_id': 'int64', 'solution_id': 'int64'}
     df = output if isinstance(output, pd.DataFrame) else output.data
     for key, value in cast_dict.items():
-        try:
+        if key in df.columns:
             df[key] = df[key].astype(value)
-        except KeyError:
-            continue
     return df
 
 

@@ -9,10 +9,7 @@ from functools import reduce
 
 
 def _get_from_dict(dictionary, _map):
-    try:
-        return reduce(operator.getitem, _map, dictionary)
-    except TypeError:
-        return None
+    return reduce(operator.getitem, _map, dictionary)
 
 
 # This dictionary contains the mapping from the usual CSV fields to the AVRO fields.

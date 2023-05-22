@@ -11,7 +11,7 @@ from astropy.io.votable import parse_single_table
 from astropy.table import Table
 
 from gaiaxpy.core.generic_functions import array_to_symmetric_matrix, str_to_array
-from .cast import _cast
+from gaiaxpy.input_reader.cast import _cast
 
 valid_extensions = ['avro', 'csv', 'ecsv', 'fits', 'xml']
 

@@ -145,10 +145,8 @@ class SampledSpectraData(OutputData):
         flux_format = f'{len(positions)}D'  # D: double precision float
         flux_error_format = f'{len(positions)}E'  # E: single precision float
         correlation_format = ''  # Correlation if requested
-        try:
+        if 'correlation' in data.columns:
             correlation_format = f"{len(data['correlation'].iloc[0])}D"
-        except KeyError:
-            pass
         # Define formats for each type according to FITS
         column_formats = {'source_id': 'K', 'xp': '2A', 'flux': flux_format, 'flux_error': flux_error_format,
                           'correlation': correlation_format, 'standard_deviation': 'E'}

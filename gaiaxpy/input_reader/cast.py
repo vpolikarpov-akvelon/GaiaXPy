@@ -4,7 +4,8 @@ cast.py
 Module to cast the data after parsing.
 """
 import numpy as np
-from numpy.ma import MaskError, getdata
+import pandas as pd
+from numpy.ma import getdata
 
 # Fields of all formats including AVRO.
 __type_map = {'source_id': 'int64', 'solution_id': 'int64', 'rp_n_parameters': 'int64', 'bp_n_parameters': 'int64',
@@ -17,7 +18,7 @@ __type_map = {'source_id': 'int64', 'solution_id': 'int64', 'rp_n_parameters': '
               'rp_coefficients': 'O', 'bp_coefficients': 'O',
               'rp_coefficient_covariances': 'O', 'bp_coefficient_covariances': 'O',
               'rp_degrees_of_freedom': 'int64', 'bp_degrees_of_freedom': 'int64',
-              'rp_n_relevant_bases': 'int64', 'bp_n_relevant_bases': 'int64',
+              'rp_n_relevant_bases': 'int16', 'bp_n_relevant_bases': 'int16',
               'rp_basis_function_id': 'int64', 'bp_basis_function_id': 'int64',
               'rp_chi_squared': 'float64', 'bp_chi_squared': 'float64',
               'rp_coefficient_errors': 'O', 'bp_coefficient_errors': 'O',
@@ -30,14 +31,14 @@ def __replace_masked_constant(value):
 
 
 def __replace_masked_array(value):
-    if (isinstance(value, np.ma.core.MaskedArray) and getdata(value).size == 0) or (isinstance(value, float) and
-                                                                                    value == 0.0):
+    if (isinstance(value, np.ma.core.MaskedArray) and getdata(value).size == 0) or\
+            (isinstance(value, float) and value == 0.0) or (isinstance(value, float) and pd.isna(value)) or\
+            isinstance(value, pd._libs.missing.NAType) or np.isnan(np.sum(value)):
         return np.array([])
     elif isinstance(value, np.ma.core.MaskedArray):
         return getdata(value)
     else:
         return value
-
 
 def _cast(df):
     """
@@ -46,19 +47,19 @@ def _cast(df):
     Args:
         df (DataFrame): a DataFrame with parsed data from input files.
     """
-    for column, type_value in __type_map.items():
-        try:
-            if type_value == 'O':
+    for column in df.columns:
+        if column not in __type_map.keys():
+            pass  # Parsing is not required
+        else:
+            if __type_map[column] == 'O':
                 df[column] = df[column].apply(lambda x: __replace_masked_array(x))
-            else:
-                df[column] = df[column].astype(type_value)
-        except KeyError:
-            continue  # Not every key is available in every case
-        except ValueError as err:
-            if np.isnan(np.sum(df[column].values)):
-                pass  # There can be nan values, do nothing with them at this step
-            else:
-                print(f'Error casting input data: {err}')  # This is an actual error
-        except MaskError:
-            continue
+            elif __type_map[column] in ['int16', 'int64', 'float64']:
+                if any(isinstance(x, np.ma.core.MaskedConstant) for x in df[column].values):
+                    df[column] = df[column].apply(lambda x: __replace_masked_constant(x))
+                    _req_dtype = 'float64'
+                elif any((pd.isna(x) for x in df[column].values)):
+                    _req_dtype = 'float64'
+                else:
+                    _req_dtype = __type_map[column]
+                df[column].astype(_req_dtype)
     return df

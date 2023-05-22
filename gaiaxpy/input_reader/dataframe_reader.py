@@ -1,4 +1,5 @@
 from gaiaxpy.core.generic_functions import array_to_symmetric_matrix
+from .cast import _cast
 from .dataframe_numpy_array_reader import DataFrameNumPyArrayReader
 from .dataframe_string_array_reader import DataFrameStringArrayReader
 
@@ -57,4 +58,4 @@ class DataFrameReader(object):
             for size_column, values_column in matrix_columns:
                 data[values_column] = data.apply(lambda row: array_to_symmetric_matrix(row[values_column],
                                                                                        row[size_column]), axis=1)
-        return data, None  # No extension returned for dataframes
+        return _cast(data), None  # No extension returned for dataframes

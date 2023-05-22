@@ -72,6 +72,8 @@ class XpSampledSpectrum(XpSpectrum, SampledSpectrum):
                 will be applied, i.e. all bases will be used.
             with_correlation (bool): Whether correlation information should be generated.
         """
+        if sampled_basis_functions is None:
+            return None
         coefficients = continuous_spectrum.get_coefficients()
         covariance = continuous_spectrum.get_covariance()
         design_matrix = sampled_basis_functions.get_design_matrix()

@@ -7,6 +7,7 @@ Module to represent an absolute sampled spectrum.
 from numbers import Number
 
 import numpy as np
+import pandas as pd
 
 from gaiaxpy.core.satellite import BANDS, BP_WL, RP_WL
 from .sampled_spectrum import SampledSpectrum
@@ -39,8 +40,8 @@ class AbsoluteSampledSpectrum(SampledSpectrum):
             with_correlation (bool): Whether correlation information should be computed.
         """
         truncation = dict() if truncation is None else truncation
-        # Bands available
-        bands = [band for band in xp_spectra.keys() if len(xp_spectra[band].get_coefficients()) != 0]
+        # Bands available, float type indicates the coefficients are nan, as they should be an array
+        bands = [band for band in xp_spectra.keys() if not len(xp_spectra[band].get_coefficients()) == 0]
         if not bands:
             raise ValueError('At least one band must be present.')
         pos = sampled_bases[bands[0]].get_sampling_grid()

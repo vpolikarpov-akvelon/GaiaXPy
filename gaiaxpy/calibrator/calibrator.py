@@ -193,9 +193,10 @@ def __create_spectra(parsed_spectrum_file: pd.DataFrame, truncation: bool, desig
                  attributes 'data_type' indicating the type of spectra and 'positions' indicating the sample positions.
              positions (ndarray): 1D array of the sample positions.
      """
-    spectra_series = parsed_spectrum_file.progress_apply(lambda row:
-                                                         _create_spectrum(row, truncation, design_matrices, merge,
-                                                                          with_correlation=with_correlation), axis=1)
+    spectra_series = parsed_spectrum_file.progress_apply(lambda row: _create_spectrum(row, truncation, design_matrices,
+                                                                                      merge,
+                                                                                      with_correlation=with_correlation
+                                                                                      ), axis=1)
     positions = spectra_series.iloc[0].get_positions()
     spectra_type = get_spectra_type(spectra_series.iloc[0])
     spectra_series = spectra_series.map(lambda x: x.spectrum_to_dict())
